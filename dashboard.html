@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — JJBA Platform</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div id="rotating-bg"></div>
+
+  <nav>
+    <a href="index.html" class="nav-logo">JJBA Platform</a>
+    <ul class="nav-links">
+      <li><a href="dashboard.html" class="active">Dashboard</a></li>
+      <li><a href="encyclopedia.html">Encyclopedia</a></li>
+      <li><a href="forum.html">Forum</a></li>
+      <li><a href="quiz.html">Quiz</a></li>
+      <li><a href="profile.html">Profile</a></li>
+    </ul>
+    <div class="nav-right">
+      <span id="user-display"></span>
+      <button id="login-btn"  class="btn"         onclick="openModal('auth-modal')">Login</button>
+      <button id="logout-btn" class="btn btn-pink" onclick="signOut()" style="display:none;">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="section">
+
+      <div class="section-title">Dashboard</div>
+      <p class="section-sub">Your JoJo activity at a glance.</p>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number" id="stat-quizzes">0</div>
+          <div class="stat-label">Quizzes Taken</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="stat-score">—</div>
+          <div class="stat-label">Best Score</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="stat-posts">0</div>
+          <div class="stat-label">Forum Posts</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="stat-badges">1</div>
+          <div class="stat-label">Badges Earned</div>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="section-title" style="font-size:2rem; margin-bottom:1rem;">Jump In</div>
+      <div class="features-grid" style="margin-bottom:3rem;">
+        <a href="quiz.html" class="feature-card">
+          <div class="feature-icon">❓</div>
+          <h3>Take a Quiz</h3>
+          <p>Test your JoJo knowledge and climb the leaderboard.</p>
+        </a>
+        <a href="encyclopedia.html" class="feature-card">
+          <div class="feature-icon">📖</div>
+          <h3>Browse Encyclopedia</h3>
+          <p>Explore every character and Stand from every part.</p>
+        </a>
+        <a href="forum.html" class="feature-card">
+          <div class="feature-icon">💬</div>
+          <h3>Join the Forum</h3>
+          <p>Share theories and chat with fellow fans.</p>
+        </a>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="section-title" style="font-size:2rem; margin-bottom:1rem;">Recent Activity</div>
+      <div class="activity-list" id="activity-list">
+        <div class="activity-item">
+          <span>🏆 Earned the <strong>New Arrival</strong> badge</span>
+          <span>Just now</span>
+        </div>
+        <div class="activity-item">
+          <span>📖 Viewed <strong>Giorno Giovanna</strong> in the Encyclopedia</span>
+          <span>Today</span>
+        </div>
+        <div class="activity-item">
+          <span>❓ Completed your first quiz — score pending</span>
+          <span>Today</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>JJBA Platform — Fan project. Not affiliated with Hirohiko Araki or Shueisha.</footer>
+
+  <!-- AUTH MODAL -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('auth-modal')">✕</button>
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tab-login"  onclick="switchTab('login')">Login</button>
+        <button class="modal-tab"        id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+      <h2 id="modal-heading">Welcome Back</h2>
+      <input type="email"    id="auth-email"    placeholder="Email address" />
+      <input type="password" id="auth-password" placeholder="Password" />
+      <div class="auth-error" id="auth-error"></div>
+      <button class="btn btn-filled" style="width:100%;" onclick="handleAuth()">
+        <span id="auth-btn-text">Login</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <div id="music-player">
+    <div class="player-header">
+      <span class="player-label">♪ JoJo Music</span>
+      <button class="player-min-btn" id="player-min-btn" onclick="playerMinimize()">▼</button>
+    </div>
+    <div class="player-body">
+      <div id="player-track-name" class="player-track">Loading...</div>
+      <div class="player-controls">
+        <button class="player-btn" onclick="playerPrev()">⏮</button>
+        <button class="player-btn" id="play-btn" onclick="playerToggle()">▶</button>
+        <button class="player-btn" onclick="playerNext()">⏭</button>
+      </div>
+      <div class="player-volume">
+        🔈<input type="range" min="0" max="1" step="0.01" value="0.5" oninput="playerVolume(this.value)" />🔊
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let authMode = 'login';
+    function switchTab(m) {
+      authMode = m;
+      document.getElementById('tab-login').classList.toggle('active', m==='login');
+      document.getElementById('tab-signup').classList.toggle('active', m==='signup');
+      document.getElementById('modal-heading').textContent = m==='login'?'Welcome Back':'Join the Adventure';
+      document.getElementById('auth-btn-text').textContent = m==='login'?'Login':'Sign Up';
+    }
+    async function handleAuth() {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const errEl = document.getElementById('auth-error');
+      errEl.style.display='none';
+      try { authMode==='login' ? await signIn(email,password) : await signUp(email,password); }
+      catch(err){ errEl.textContent=err.message; errEl.style.display='block'; }
+    }
+
+    // Load quiz stats from localStorage
+    document.addEventListener('DOMContentLoaded', () => {
+      const quizzes = parseInt(localStorage.getItem('jjba_quizzes') || '0');
+      const best    = localStorage.getItem('jjba_best_score');
+      document.getElementById('stat-quizzes').textContent = quizzes;
+      document.getElementById('stat-score').textContent   = best ? best + '%' : '—';
+    });
+  </script>
+  <script src="js/app.js" type="module"></script>
+</body>
+</html>

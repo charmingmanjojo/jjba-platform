@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile — JJBA Platform</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div id="rotating-bg"></div>
+
+  <nav>
+    <a href="index.html" class="nav-logo">JJBA Platform</a>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="encyclopedia.html">Encyclopedia</a></li>
+      <li><a href="forum.html">Forum</a></li>
+      <li><a href="quiz.html">Quiz</a></li>
+      <li><a href="profile.html" class="active">Profile</a></li>
+    </ul>
+    <div class="nav-right">
+      <span id="user-display"></span>
+      <button id="login-btn"  class="btn"         onclick="openModal('auth-modal')">Login</button>
+      <button id="logout-btn" class="btn btn-pink" onclick="signOut()" style="display:none;">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="section">
+
+      <div class="section-title">Profile</div>
+      <p class="section-sub">Your bizarre identity.</p>
+
+      <!-- Profile Header -->
+      <div class="profile-header-card">
+        <div class="profile-avatar" id="profile-avatar">🌟</div>
+        <div>
+          <div class="profile-name" id="profile-name">STAND USER</div>
+          <div class="profile-handle" id="profile-handle">Not logged in</div>
+          <div class="badges">
+            <span class="badge">New Arrival</span>
+            <span class="badge pink">Quiz Taker</span>
+            <span class="badge teal">Fan</span>
+          </div>
+        </div>
+        <div style="margin-left:auto;">
+          <button class="btn" onclick="openModal('edit-modal')">Edit Profile</button>
+        </div>
+      </div>
+
+      <!-- Stats + Activity in two columns -->
+      <div class="two-col">
+
+        <div>
+          <div class="section-title" style="font-size:2rem; margin-bottom:1rem;">Stats</div>
+          <div class="stats-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="stat-card">
+              <div class="stat-number" id="p-quizzes">0</div>
+              <div class="stat-label">Quizzes</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="p-score">—</div>
+              <div class="stat-label">Best Score</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">1</div>
+              <div class="stat-label">Badges</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">0</div>
+              <div class="stat-label">Posts</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-title" style="font-size:2rem; margin-bottom:1rem;">Favorite Part</div>
+          <div class="card" style="margin-bottom:1rem;">
+            <div style="font-family:'Bebas Neue',cursive; font-size:1.5rem; color:var(--gold); letter-spacing:2px; margin-bottom:0.5rem;" id="fav-part-display">Not set</div>
+            <p style="opacity:0.5; font-size:0.88rem;">Set your favorite JoJo part to show it on your profile.</p>
+            <div class="filter-tabs" style="margin-top:1rem; margin-bottom:0;">
+              <button class="filter-tab" onclick="setFavPart(this,'Phantom Blood')">Part 1</button>
+              <button class="filter-tab" onclick="setFavPart(this,'Battle Tendency')">Part 2</button>
+              <button class="filter-tab" onclick="setFavPart(this,'Stardust Crusaders')">Part 3</button>
+              <button class="filter-tab" onclick="setFavPart(this,'Diamond is Unbreakable')">Part 4</button>
+              <button class="filter-tab" onclick="setFavPart(this,'Golden Wind')">Part 5</button>
+              <button class="filter-tab" onclick="setFavPart(this,'Stone Ocean')">Part 6</button>
+              <button class="filter-tab" onclick="setFavPart(this,'Steel Ball Run')">Part 7</button>
+              <button class="filter-tab" onclick="setFavPart(this,'JoJolion')">Part 8</button>
+            </div>
+          </div>
+
+          <div class="section-title" style="font-size:2rem; margin-bottom:1rem;">Favorite Stand</div>
+          <div class="card">
+            <div style="font-family:'Bebas Neue',cursive; font-size:1.5rem; color:var(--pink); letter-spacing:2px; margin-bottom:0.5rem;" id="fav-stand-display">Not set</div>
+            <input class="search-input" id="stand-input" type="text" placeholder="Type a Stand name..." style="margin-top:0.5rem;" />
+            <button class="btn btn-teal" style="margin-top:0.75rem;" onclick="saveFavStand()">Save</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <footer>JJBA Platform — Fan project. Not affiliated with Hirohiko Araki or Shueisha.</footer>
+
+  <!-- EDIT MODAL -->
+  <div class="modal-overlay" id="edit-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('edit-modal')">✕</button>
+      <h2>Edit Profile</h2>
+      <input type="text" id="edit-username" placeholder="Display name" />
+      <div style="margin-bottom:1rem;">
+        <p style="opacity:0.5; font-size:0.85rem; margin-bottom:0.75rem; letter-spacing:1px;">Choose avatar:</p>
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+          ${['🌟','🎩','🌹','💎','🔥','⭐','👑','💀','🦖','🌀'].map(e =>
+            `<button onclick="selectAvatar('${e}')" style="font-size:1.8rem; background:rgba(255,255,255,0.05); border:2px solid rgba(245,158,11,0.2); padding:0.4rem; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='rgba(245,158,11,0.2)'">${e}</button>`
+          ).join('')}
+        </div>
+      </div>
+      <button class="btn btn-filled" style="width:100%;" onclick="saveProfile()">Save</button>
+    </div>
+  </div>
+
+  <!-- AUTH MODAL -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('auth-modal')">✕</button>
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tab-login"  onclick="switchTab('login')">Login</button>
+        <button class="modal-tab"        id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+      <h2 id="modal-heading">Welcome Back</h2>
+      <input type="email"    id="auth-email"    placeholder="Email address" />
+      <input type="password" id="auth-password" placeholder="Password" />
+      <div class="auth-error" id="auth-error"></div>
+      <button class="btn btn-filled" style="width:100%;" onclick="handleAuth()">
+        <span id="auth-btn-text">Login</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <div id="music-player">
+    <div class="player-header">
+      <span class="player-label">♪ JoJo Music</span>
+      <button class="player-min-btn" id="player-min-btn" onclick="playerMinimize()">▼</button>
+    </div>
+    <div class="player-body">
+      <div id="player-track-name" class="player-track">Loading...</div>
+      <div class="player-controls">
+        <button class="player-btn" onclick="playerPrev()">⏮</button>
+        <button class="player-btn" id="play-btn" onclick="playerToggle()">▶</button>
+        <button class="player-btn" onclick="playerNext()">⏭</button>
+      </div>
+      <div class="player-volume">
+        🔈<input type="range" min="0" max="1" step="0.01" value="0.5" oninput="playerVolume(this.value)" />🔊
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let authMode = 'login';
+    let selectedAvatar = '🌟';
+
+    function switchTab(m) {
+      authMode = m;
+      document.getElementById('tab-login').classList.toggle('active', m==='login');
+      document.getElementById('tab-signup').classList.toggle('active', m==='signup');
+      document.getElementById('modal-heading').textContent = m==='login'?'Welcome Back':'Join the Adventure';
+      document.getElementById('auth-btn-text').textContent = m==='login'?'Login':'Sign Up';
+    }
+    async function handleAuth() {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const errEl = document.getElementById('auth-error');
+      errEl.style.display='none';
+      try { authMode==='login' ? await signIn(email,password) : await signUp(email,password); }
+      catch(err){ errEl.textContent=err.message; errEl.style.display='block'; }
+    }
+
+    function selectAvatar(emoji) { selectedAvatar = emoji; }
+
+    function saveProfile() {
+      const name = document.getElementById('edit-username').value.trim();
+      if (name) {
+        localStorage.setItem('jjba_username', name);
+        localStorage.setItem('jjba_avatar', selectedAvatar);
+        loadProfile();
+        showToast('PROFILE UPDATED!');
+        closeModal('edit-modal');
+      }
+    }
+
+    function setFavPart(el, part) {
+      document.querySelectorAll('#profile .filter-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      localStorage.setItem('jjba_fav_part', part);
+      document.getElementById('fav-part-display').textContent = part;
+      showToast('FAVORITE PART SAVED!');
+    }
+
+    function saveFavStand() {
+      const stand = document.getElementById('stand-input').value.trim();
+      if (stand) {
+        localStorage.setItem('jjba_fav_stand', stand);
+        document.getElementById('fav-stand-display').textContent = stand.toUpperCase();
+        showToast('FAVORITE STAND SAVED!');
+      }
+    }
+
+    function loadProfile() {
+      const name   = localStorage.getItem('jjba_username') || 'STAND USER';
+      const avatar = localStorage.getItem('jjba_avatar')   || '🌟';
+      const part   = localStorage.getItem('jjba_fav_part');
+      const stand  = localStorage.getItem('jjba_fav_stand');
+      const quizzes = parseInt(localStorage.getItem('jjba_quizzes') || '0');
+      const best    = localStorage.getItem('jjba_best_score');
+
+      document.getElementById('profile-name').textContent   = name.toUpperCase();
+      document.getElementById('profile-avatar').textContent = avatar;
+      document.getElementById('p-quizzes').textContent      = quizzes;
+      document.getElementById('p-score').textContent        = best ? best + '%' : '—';
+      if (part)  document.getElementById('fav-part-display').textContent  = part;
+      if (stand) document.getElementById('fav-stand-display').textContent = stand.toUpperCase();
+    }
+
+    document.addEventListener('DOMContentLoaded', loadProfile);
+  </script>
+  <script src="js/app.js" type="module"></script>
+</body>
+</html>

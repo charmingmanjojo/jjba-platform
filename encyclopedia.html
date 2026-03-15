@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Encyclopedia — JJBA Platform</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div id="rotating-bg"></div>
+
+  <nav>
+    <a href="index.html" class="nav-logo">JJBA Platform</a>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="encyclopedia.html" class="active">Encyclopedia</a></li>
+      <li><a href="forum.html">Forum</a></li>
+      <li><a href="quiz.html">Quiz</a></li>
+      <li><a href="profile.html">Profile</a></li>
+    </ul>
+    <div class="nav-right">
+      <span id="user-display"></span>
+      <button id="login-btn"  class="btn"         onclick="openModal('auth-modal')">Login</button>
+      <button id="logout-btn" class="btn btn-pink" onclick="signOut()" style="display:none;">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="section">
+
+      <div class="section-title">Encyclopedia</div>
+      <p class="section-sub">Every character and Stand across all 9 parts.</p>
+
+      <!-- Search -->
+      <div class="search-row">
+        <input class="search-input" id="search-input" type="text" placeholder="Search characters or Stands..." oninput="renderCards()" />
+      </div>
+
+      <!-- Part filter -->
+      <div class="filter-tabs" id="filter-tabs">
+        <button class="filter-tab active" data-part="all"  onclick="setFilter(this,'all')">All Parts</button>
+        <button class="filter-tab"        data-part="1"    onclick="setFilter(this,'1')">Part 1</button>
+        <button class="filter-tab"        data-part="2"    onclick="setFilter(this,'2')">Part 2</button>
+        <button class="filter-tab"        data-part="3"    onclick="setFilter(this,'3')">Part 3</button>
+        <button class="filter-tab"        data-part="4"    onclick="setFilter(this,'4')">Part 4</button>
+        <button class="filter-tab"        data-part="5"    onclick="setFilter(this,'5')">Part 5</button>
+        <button class="filter-tab"        data-part="6"    onclick="setFilter(this,'6')">Part 6</button>
+        <button class="filter-tab"        data-part="7"    onclick="setFilter(this,'7')">Part 7</button>
+        <button class="filter-tab"        data-part="8"    onclick="setFilter(this,'8')">Part 8</button>
+      </div>
+
+      <!-- Cards -->
+      <div class="char-grid" id="char-grid"></div>
+
+    </div>
+  </div>
+
+  <footer>JJBA Platform — Fan project. Not affiliated with Hirohiko Araki or Shueisha.</footer>
+
+  <!-- AUTH MODAL -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('auth-modal')">✕</button>
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tab-login"  onclick="switchTab('login')">Login</button>
+        <button class="modal-tab"        id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+      <h2 id="modal-heading">Welcome Back</h2>
+      <input type="email"    id="auth-email"    placeholder="Email address" />
+      <input type="password" id="auth-password" placeholder="Password" />
+      <div class="auth-error" id="auth-error"></div>
+      <button class="btn btn-filled" style="width:100%;" onclick="handleAuth()">
+        <span id="auth-btn-text">Login</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <div id="music-player">
+    <div class="player-header">
+      <span class="player-label">♪ JoJo Music</span>
+      <button class="player-min-btn" id="player-min-btn" onclick="playerMinimize()">▼</button>
+    </div>
+    <div class="player-body">
+      <div id="player-track-name" class="player-track">Loading...</div>
+      <div class="player-controls">
+        <button class="player-btn" onclick="playerPrev()">⏮</button>
+        <button class="player-btn" id="play-btn" onclick="playerToggle()">▶</button>
+        <button class="player-btn" onclick="playerNext()">⏭</button>
+      </div>
+      <div class="player-volume">
+        🔈<input type="range" min="0" max="1" step="0.01" value="0.5" oninput="playerVolume(this.value)" />🔊
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let authMode = 'login';
+    let activeFilter = 'all';
+
+    function switchTab(m) {
+      authMode = m;
+      document.getElementById('tab-login').classList.toggle('active', m==='login');
+      document.getElementById('tab-signup').classList.toggle('active', m==='signup');
+      document.getElementById('modal-heading').textContent = m==='login'?'Welcome Back':'Join the Adventure';
+      document.getElementById('auth-btn-text').textContent = m==='login'?'Login':'Sign Up';
+    }
+    async function handleAuth() {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const errEl = document.getElementById('auth-error');
+      errEl.style.display='none';
+      try { authMode==='login' ? await signIn(email,password) : await signUp(email,password); }
+      catch(err){ errEl.textContent=err.message; errEl.style.display='block'; }
+    }
+
+    function setFilter(el, part) {
+      activeFilter = part;
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      renderCards();
+    }
+
+    const CHARACTERS = [
+      { name:'Jonathan Joestar',   part:'1', stand:'—',                     emoji:'🎩' },
+      { name:'Robert E.O. Speedwagon', part:'1', stand:'—',                 emoji:'🎩' },
+      { name:'Dio Brando',         part:'1', stand:'The World',              emoji:'🧛' },
+      { name:'Joseph Joestar',     part:'2', stand:'Hermit Purple',          emoji:'👴' },
+      { name:'Caesar Zeppeli',     part:'2', stand:'—',                     emoji:'🫧' },
+      { name:'Lisa Lisa',          part:'2', stand:'—',                     emoji:'💃' },
+      { name:'Jotaro Kujo',        part:'3', stand:'Star Platinum',          emoji:'🌟' },
+      { name:'Noriaki Kakyoin',    part:'3', stand:'Hierophant Green',       emoji:'💚' },
+      { name:'Jean Pierre Polnareff', part:'3', stand:'Silver Chariot',      emoji:'⚔️' },
+      { name:'Muhammad Avdol',     part:'3', stand:'Magician\'s Red',        emoji:'🔥' },
+      { name:'Iggy',               part:'3', stand:'The Fool',               emoji:'🐕' },
+      { name:'Josuke Higashikata', part:'4', stand:'Crazy Diamond',          emoji:'💎' },
+      { name:'Koichi Hirose',      part:'4', stand:'Echoes',                 emoji:'🥚' },
+      { name:'Rohan Kishibe',      part:'4', stand:'Heaven\'s Door',         emoji:'📖' },
+      { name:'Yoshikage Kira',     part:'4', stand:'Killer Queen',           emoji:'💣' },
+      { name:'Giorno Giovanna',    part:'5', stand:'Gold Experience',        emoji:'🌹' },
+      { name:'Bruno Bucciarati',   part:'5', stand:'Sticky Fingers',         emoji:'🤐' },
+      { name:'Guido Mista',        part:'5', stand:'Sex Pistols',            emoji:'🔫' },
+      { name:'Narancia Ghirga',    part:'5', stand:'Aerosmith',              emoji:'✈️' },
+      { name:'Diavolo',            part:'5', stand:'King Crimson',           emoji:'👹' },
+      { name:'Jolyne Cujoh',       part:'6', stand:'Stone Free',             emoji:'🧵' },
+      { name:'Hermes Costello',    part:'6', stand:'Kiss',                   emoji:'💋' },
+      { name:'Foo Fighters',       part:'6', stand:'Foo Fighters',           emoji:'💧' },
+      { name:'Enrico Pucci',       part:'6', stand:'Whitesnake',             emoji:'🐍' },
+      { name:'Johnny Joestar',     part:'7', stand:'Tusk',                   emoji:'🌀' },
+      { name:'Gyro Zeppeli',       part:'7', stand:'Ball Breaker',           emoji:'⚙️' },
+      { name:'Diego Brando',       part:'7', stand:'Scary Monsters',         emoji:'🦖' },
+      { name:'Josuke Higashikata (SBR)', part:'8', stand:'Soft & Wet',      emoji:'💫' },
+      { name:'Yasuho Hirose',      part:'8', stand:'Paisley Park',           emoji:'🌸' },
+      { name:'Yoshikage Kira (SBR)', part:'8', stand:'Killer Queen',        emoji:'💣' },
+    ];
+
+    function renderCards() {
+      const q     = document.getElementById('search-input').value.toLowerCase();
+      const grid  = document.getElementById('char-grid');
+      const shown = CHARACTERS.filter(c => {
+        const matchPart   = activeFilter === 'all' || c.part === activeFilter;
+        const matchSearch = !q || c.name.toLowerCase().includes(q) || c.stand.toLowerCase().includes(q);
+        return matchPart && matchSearch;
+      });
+
+      grid.innerHTML = shown.map(c => `
+        <div class="char-card" onclick="showToast('${c.name.toUpperCase()} — Full entries coming soon!')">
+          <div class="char-avatar">${c.emoji}</div>
+          <div class="char-name">${c.name}</div>
+          <div class="char-part">Part ${c.part}</div>
+          ${c.stand !== '—' ? `<div class="char-stand">${c.stand}</div>` : ''}
+        </div>
+      `).join('');
+
+      if (!shown.length) {
+        grid.innerHTML = '<p style="opacity:0.4; letter-spacing:2px; font-family:\'Bebas Neue\',cursive; font-size:1.5rem;">NO RESULTS FOUND</p>';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', renderCards);
+  </script>
+  <script src="js/app.js" type="module"></script>
+</body>
+</html>

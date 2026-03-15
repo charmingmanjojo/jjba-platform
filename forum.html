@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forum — JJBA Platform</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div id="rotating-bg"></div>
+
+  <nav>
+    <a href="index.html" class="nav-logo">JJBA Platform</a>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="encyclopedia.html">Encyclopedia</a></li>
+      <li><a href="forum.html" class="active">Forum</a></li>
+      <li><a href="quiz.html">Quiz</a></li>
+      <li><a href="profile.html">Profile</a></li>
+    </ul>
+    <div class="nav-right">
+      <span id="user-display"></span>
+      <button id="login-btn"  class="btn"         onclick="openModal('auth-modal')">Login</button>
+      <button id="logout-btn" class="btn btn-pink" onclick="signOut()" style="display:none;">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="section">
+
+      <div class="forum-header">
+        <div>
+          <div class="section-title">Forum</div>
+          <p class="section-sub" style="margin-bottom:0;">Theories, fan art, and bizarre discussions.</p>
+        </div>
+        <button class="btn btn-teal" onclick="openModal('new-post-modal')">+ New Post</button>
+      </div>
+
+      <!-- Filter tabs -->
+      <div class="filter-tabs" style="margin-bottom:2rem;">
+        <button class="filter-tab active" onclick="filterPosts(this,'all')">All</button>
+        <button class="filter-tab"        onclick="filterPosts(this,'theory')">Theories</button>
+        <button class="filter-tab"        onclick="filterPosts(this,'fanart')">Fan Art</button>
+        <button class="filter-tab"        onclick="filterPosts(this,'spoiler')">Spoilers</button>
+        <button class="filter-tab"        onclick="filterPosts(this,'discussion')">Discussion</button>
+      </div>
+
+      <div class="post-list" id="post-list"></div>
+
+    </div>
+  </div>
+
+  <footer>JJBA Platform — Fan project. Not affiliated with Hirohiko Araki or Shueisha.</footer>
+
+  <!-- NEW POST MODAL -->
+  <div class="modal-overlay" id="new-post-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('new-post-modal')">✕</button>
+      <h2>New Post</h2>
+      <select id="post-tag-select" style="width:100%;background:rgba(255,255,255,0.05);border:2px solid rgba(245,158,11,0.3);color:#F5F5F5;padding:0.8rem 1rem;font-family:'Outfit',sans-serif;font-size:1rem;margin-bottom:1rem;outline:none;">
+        <option value="discussion">Discussion</option>
+        <option value="theory">Theory</option>
+        <option value="fanart">Fan Art</option>
+        <option value="spoiler">Spoiler</option>
+      </select>
+      <input type="text" id="post-title-input" placeholder="Post title..." />
+      <textarea id="post-body-input" placeholder="What's on your mind?" style="width:100%;background:rgba(255,255,255,0.05);border:2px solid rgba(245,158,11,0.25);color:#F5F5F5;padding:0.8rem 1rem;font-family:'Outfit',sans-serif;font-size:1rem;margin-bottom:1rem;outline:none;resize:vertical;min-height:100px;"></textarea>
+      <button class="btn btn-filled" style="width:100%;" onclick="submitPost()">Post It</button>
+    </div>
+  </div>
+
+  <!-- AUTH MODAL -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('auth-modal')">✕</button>
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tab-login"  onclick="switchTab('login')">Login</button>
+        <button class="modal-tab"        id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+      <h2 id="modal-heading">Welcome Back</h2>
+      <input type="email"    id="auth-email"    placeholder="Email address" />
+      <input type="password" id="auth-password" placeholder="Password" />
+      <div class="auth-error" id="auth-error"></div>
+      <button class="btn btn-filled" style="width:100%;" onclick="handleAuth()">
+        <span id="auth-btn-text">Login</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <div id="music-player">
+    <div class="player-header">
+      <span class="player-label">♪ JoJo Music</span>
+      <button class="player-min-btn" id="player-min-btn" onclick="playerMinimize()">▼</button>
+    </div>
+    <div class="player-body">
+      <div id="player-track-name" class="player-track">Loading...</div>
+      <div class="player-controls">
+        <button class="player-btn" onclick="playerPrev()">⏮</button>
+        <button class="player-btn" id="play-btn" onclick="playerToggle()">▶</button>
+        <button class="player-btn" onclick="playerNext()">⏭</button>
+      </div>
+      <div class="player-volume">
+        🔈<input type="range" min="0" max="1" step="0.01" value="0.5" oninput="playerVolume(this.value)" />🔊
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let authMode = 'login';
+    let activeTag = 'all';
+
+    function switchTab(m) {
+      authMode = m;
+      document.getElementById('tab-login').classList.toggle('active', m==='login');
+      document.getElementById('tab-signup').classList.toggle('active', m==='signup');
+      document.getElementById('modal-heading').textContent = m==='login'?'Welcome Back':'Join the Adventure';
+      document.getElementById('auth-btn-text').textContent = m==='login'?'Login':'Sign Up';
+    }
+    async function handleAuth() {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const errEl = document.getElementById('auth-error');
+      errEl.style.display='none';
+      try { authMode==='login' ? await signIn(email,password) : await signUp(email,password); }
+      catch(err){ errEl.textContent=err.message; errEl.style.display='block'; }
+    }
+
+    const SAMPLE_POSTS = [
+      { title:'Is Giorno actually the strongest JoJo?', tag:'theory', author:'StarPlatinumFan', time:'2h ago', preview:'GER literally stops causality. I don\'t see how any other JoJo even comes close. Let me break down why...', replies:24 },
+      { title:'My Josuke fanart — first time drawing manga style!', tag:'fanart', author:'BizarreArtist', time:'4h ago', preview:'Spent about 8 hours on this piece. Tried to capture Araki\'s coloring style with the bold outlines. Feedback welcome!', replies:17 },
+      { title:'SBR Chapter 95 discussion [SPOILERS]', tag:'spoiler', author:'SteelBallRunner', time:'6h ago', preview:'That ending hit different. The way Araki handled the conclusion of the race... I need to talk about this with someone.', replies:41 },
+      { title:'Ranking every Stand from Part 4 — controversial opinion incoming', tag:'discussion', author:'KillerQueenFan', time:'8h ago', preview:'Bites the Dust is criminally underrated. Yes I said it. Here\'s my full ranking with explanations for each...', replies:33 },
+      { title:'Pucci\'s plan makes zero sense and here\'s why', tag:'theory', author:'HeavenAscended', time:'1d ago', preview:'I love Part 6 but the logic behind Made in Heaven just doesn\'t hold up when you analyze it. Thread incoming...', replies:58 },
+      { title:'New to JoJo — just finished Part 3, where do I start with Part 4?', tag:'discussion', author:'NewBizarreAdventurer', time:'1d ago', preview:'Just watched Stardust Crusaders and I\'m obsessed. Is Diamond is Unbreakable worth watching or should I read the manga?', replies:12 },
+    ];
+
+    let posts = [...SAMPLE_POSTS];
+
+    function filterPosts(el, tag) {
+      activeTag = tag;
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      renderPosts();
+    }
+
+    function renderPosts() {
+      const list = document.getElementById('post-list');
+      const shown = activeTag === 'all' ? posts : posts.filter(p => p.tag === activeTag);
+      list.innerHTML = shown.map(p => `
+        <div class="post-card" onclick="showToast('Full post view coming soon!')">
+          <div class="post-top">
+            <div class="post-title">${p.title}</div>
+            <span class="post-tag ${p.tag}">${p.tag}</span>
+          </div>
+          <div class="post-preview">${p.preview}</div>
+          <div class="post-meta">
+            <span>👤 ${p.author}</span>
+            <span>💬 ${p.replies} replies</span>
+            <span>🕐 ${p.time}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function submitPost() {
+      const title   = document.getElementById('post-title-input').value.trim();
+      const tag     = document.getElementById('post-tag-select').value;
+      const preview = document.getElementById('post-body-input').value.trim();
+      if (!title) { showToast('ADD A TITLE!'); return; }
+      posts.unshift({ title, tag, author: 'You', time: 'Just now', preview: preview || '(no preview)', replies: 0 });
+      renderPosts();
+      closeModal('new-post-modal');
+      showToast('POST SUBMITTED!');
+      document.getElementById('post-title-input').value = '';
+      document.getElementById('post-body-input').value  = '';
+    }
+
+    document.addEventListener('DOMContentLoaded', renderPosts);
+  </script>
+  <script src="js/app.js" type="module"></script>
+</body>
+</html>

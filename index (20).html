@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JJBA Platform — Your Bizarre Home</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div id="rotating-bg"></div>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="nav-logo">JJBA Platform</a>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="encyclopedia.html">Encyclopedia</a></li>
+      <li><a href="forum.html">Forum</a></li>
+      <li><a href="quiz.html">Quiz</a></li>
+      <li><a href="profile.html">Profile</a></li>
+    </ul>
+    <div class="nav-right">
+      <span id="user-display"></span>
+      <button id="login-btn"  class="btn"          onclick="openModal('auth-modal')">Login</button>
+      <button id="logout-btn" class="btn btn-pink"  onclick="signOut()" style="display:none;">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-eyebrow">Your Bizarre Adventure Starts Here</div>
+        <h1>JJBA<br/><span>Platform</span></h1>
+        <p>
+          The ultimate fan hub for JoJo's Bizarre Adventure —
+          explore every character and Stand, debate theories, test your
+          knowledge, and connect with fellow fans.
+        </p>
+        <div class="hero-btns">
+          <button class="btn btn-filled btn-lg" onclick="openModal('auth-modal')">Join the Adventure</button>
+          <a href="encyclopedia.html" class="btn btn-lg">Browse Stands</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="section">
+      <div class="section-title">What's Inside</div>
+      <p class="section-sub">Everything a JoJo fan needs in one bizarre place.</p>
+      <div class="features-grid">
+        <a href="dashboard.html" class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Dashboard</h3>
+          <p>Your personal hub — track quiz scores, activity, and fan stats all in one place.</p>
+        </a>
+        <a href="encyclopedia.html" class="feature-card">
+          <div class="feature-icon">📖</div>
+          <h3>Encyclopedia</h3>
+          <p>Every JoJo, every Stand, every villain — from Phantom Blood to The JOJOLands.</p>
+        </a>
+        <a href="forum.html" class="feature-card">
+          <div class="feature-icon">💬</div>
+          <h3>Forum</h3>
+          <p>Share theories, post fan art, and discuss the wildest moments in manga history.</p>
+        </a>
+        <a href="quiz.html" class="feature-card">
+          <div class="feature-icon">❓</div>
+          <h3>Quiz</h3>
+          <p>Think you know JoJo? Test yourself across all 9 parts and prove your Stand power.</p>
+        </a>
+        <a href="profile.html" class="feature-card">
+          <div class="feature-icon">👤</div>
+          <h3>Profile</h3>
+          <p>Customize your profile, earn badges, and show off your bizarre knowledge level.</p>
+        </a>
+      </div>
+    </section>
+
+  </div><!-- /page -->
+
+  <footer>JJBA Platform — Fan project. Not affiliated with Hirohiko Araki or Shueisha.</footer>
+
+  <!-- AUTH MODAL -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('auth-modal')">✕</button>
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tab-login"  onclick="switchTab('login')">Login</button>
+        <button class="modal-tab"        id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+      <h2 id="modal-heading">Welcome Back</h2>
+      <input type="email"    id="auth-email"    placeholder="Email address" autocomplete="email" />
+      <input type="password" id="auth-password" placeholder="Password"      autocomplete="current-password" />
+      <div class="auth-error" id="auth-error"></div>
+      <button class="btn btn-filled" style="width:100%;" onclick="handleAuth()">
+        <span id="auth-btn-text">Login</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast"></div>
+
+  <!-- MUSIC PLAYER -->
+  <div id="music-player">
+    <div class="player-header">
+      <span class="player-label">♪ JoJo Music</span>
+      <button class="player-min-btn" id="player-min-btn" onclick="playerMinimize()">▼</button>
+    </div>
+    <div class="player-body">
+      <div id="player-track-name" class="player-track">Loading...</div>
+      <div class="player-controls">
+        <button class="player-btn" onclick="playerPrev()">⏮</button>
+        <button class="player-btn" id="play-btn" onclick="playerToggle()">▶</button>
+        <button class="player-btn" onclick="playerNext()">⏭</button>
+      </div>
+      <div class="player-volume">
+        🔈
+        <input type="range" min="0" max="1" step="0.01" value="0.5" oninput="playerVolume(this.value)" />
+        🔊
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let authMode = 'login';
+
+    function switchTab(mode) {
+      authMode = mode;
+      document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+      document.getElementById('tab-signup').classList.toggle('active', mode === 'signup');
+      document.getElementById('modal-heading').textContent  = mode === 'login' ? 'Welcome Back' : 'Join the Adventure';
+      document.getElementById('auth-btn-text').textContent  = mode === 'login' ? 'Login' : 'Sign Up';
+      document.getElementById('auth-error').style.display   = 'none';
+    }
+
+    async function handleAuth() {
+      const email    = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const errEl    = document.getElementById('auth-error');
+      errEl.style.display = 'none';
+      try {
+        if (authMode === 'login') {
+          await signIn(email, password);
+        } else {
+          await signUp(email, password);
+        }
+      } catch (err) {
+        errEl.textContent   = err.message;
+        errEl.style.display = 'block';
+      }
+    }
+  </script>
+  <script src="js/app.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz — JJBA Platform</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div id="rotating-bg"></div>
+
+  <nav>
+    <a href="index.html" class="nav-logo">JJBA Platform</a>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="encyclopedia.html">Encyclopedia</a></li>
+      <li><a href="forum.html">Forum</a></li>
+      <li><a href="quiz.html" class="active">Quiz</a></li>
+      <li><a href="profile.html">Profile</a></li>
+    </ul>
+    <div class="nav-right">
+      <span id="user-display"></span>
+      <button id="login-btn"  class="btn"         onclick="openModal('auth-modal')">Login</button>
+      <button id="logout-btn" class="btn btn-pink" onclick="signOut()" style="display:none;">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="section">
+
+      <!-- START SCREEN -->
+      <div id="start-screen">
+        <div class="section-title">JoJo Quiz</div>
+        <p class="section-sub">10 questions. How bizarre is your knowledge?</p>
+        <div class="quiz-wrap" style="margin-top:2rem;">
+          <div class="features-grid">
+            <div class="feature-card" onclick="startQuiz('easy')" style="cursor:pointer;">
+              <div class="feature-icon">🟢</div>
+              <h3>Easy</h3>
+              <p>Basic JoJo knowledge. Perfect for newcomers to the bizarre world.</p>
+            </div>
+            <div class="feature-card" onclick="startQuiz('medium')" style="cursor:pointer;">
+              <div class="feature-icon">🟡</div>
+              <h3>Medium</h3>
+              <p>You've watched the anime. Now prove you were paying attention.</p>
+            </div>
+            <div class="feature-card" onclick="startQuiz('hard')" style="cursor:pointer;">
+              <div class="feature-icon">🔴</div>
+              <h3>Hard</h3>
+              <p>Manga-reader level. Only true fans of the bizarre will pass.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUIZ SCREEN -->
+      <div id="quiz-screen" style="display:none;">
+        <div class="quiz-wrap">
+          <div class="quiz-progress-row">
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+            </div>
+            <span class="quiz-counter" id="quiz-counter">1 / 10</span>
+            <span class="quiz-score-badge" id="quiz-score-badge">0 pts</span>
+          </div>
+          <div class="quiz-q" id="quiz-question"></div>
+          <div class="quiz-options" id="quiz-options"></div>
+        </div>
+      </div>
+
+      <!-- RESULT SCREEN -->
+      <div id="result-screen" style="display:none;">
+        <div class="quiz-wrap quiz-result">
+          <h2 id="result-title">Quiz Complete!</h2>
+          <div class="result-score" id="result-score"></div>
+          <p id="result-message"></p>
+          <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+            <button class="btn btn-filled btn-lg" onclick="startQuiz(currentDifficulty)">Play Again</button>
+            <a href="dashboard.html" class="btn btn-lg">View Dashboard</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>JJBA Platform — Fan project. Not affiliated with Hirohiko Araki or Shueisha.</footer>
+
+  <!-- AUTH MODAL -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('auth-modal')">✕</button>
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tab-login"  onclick="switchTab('login')">Login</button>
+        <button class="modal-tab"        id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+      <h2 id="modal-heading">Welcome Back</h2>
+      <input type="email"    id="auth-email"    placeholder="Email address" />
+      <input type="password" id="auth-password" placeholder="Password" />
+      <div class="auth-error" id="auth-error"></div>
+      <button class="btn btn-filled" style="width:100%;" onclick="handleAuth()">
+        <span id="auth-btn-text">Login</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <div id="music-player">
+    <div class="player-header">
+      <span class="player-label">♪ JoJo Music</span>
+      <button class="player-min-btn" id="player-min-btn" onclick="playerMinimize()">▼</button>
+    </div>
+    <div class="player-body">
+      <div id="player-track-name" class="player-track">Loading...</div>
+      <div class="player-controls">
+        <button class="player-btn" onclick="playerPrev()">⏮</button>
+        <button class="player-btn" id="play-btn" onclick="playerToggle()">▶</button>
+        <button class="player-btn" onclick="playerNext()">⏭</button>
+      </div>
+      <div class="player-volume">
+        🔈<input type="range" min="0" max="1" step="0.01" value="0.5" oninput="playerVolume(this.value)" />🔊
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let authMode = 'login';
+    function switchTab(m) {
+      authMode = m;
+      document.getElementById('tab-login').classList.toggle('active', m==='login');
+      document.getElementById('tab-signup').classList.toggle('active', m==='signup');
+      document.getElementById('modal-heading').textContent = m==='login'?'Welcome Back':'Join the Adventure';
+      document.getElementById('auth-btn-text').textContent = m==='login'?'Login':'Sign Up';
+    }
+    async function handleAuth() {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const errEl = document.getElementById('auth-error');
+      errEl.style.display='none';
+      try { authMode==='login' ? await signIn(email,password) : await signUp(email,password); }
+      catch(err){ errEl.textContent=err.message; errEl.style.display='block'; }
+    }
+
+    // ── QUIZ DATA ──────────────────────────────────────────
+    const QUESTIONS = {
+      easy: [
+        { q: "What is the name of Jotaro Kujo's Stand?", options: ["Star Platinum","The World","Crazy Diamond","Gold Experience"], answer: 0 },
+        { q: "Which part of JoJo takes place in Morioh Town?", options: ["Part 3","Part 4","Part 5","Part 6"], answer: 1 },
+        { q: "What is the signature battle cry of Dio Brando?", options: ["ORA ORA ORA","MUDA MUDA MUDA","WRYYYY","ZA WARUDO"], answer: 1 },
+        { q: "Giorno Giovanna is the main character of which part?", options: ["Part 4","Part 5","Part 6","Part 7"], answer: 1 },
+        { q: "What is the name of Jolyne Cujoh's Stand?", options: ["Paisley Park","Stone Free","Kiss","Foo Fighters"], answer: 1 },
+        { q: "Who is the main villain of Part 3: Stardust Crusaders?", options: ["Yoshikage Kira","Diavolo","Dio Brando","Enrico Pucci"], answer: 2 },
+        { q: "What does Yoshikage Kira's Killer Queen do to things it touches?", options: ["Freezes them","Turns them into bombs","Erases them from existence","Rewinds time"], answer: 1 },
+        { q: "Which JoJo part is set during the Steel Ball Run horse race?", options: ["Part 5","Part 6","Part 7","Part 8"], answer: 2 },
+        { q: "What is the name of Joseph Joestar's Stand?", options: ["Hermit Purple","Magician's Red","The Fool","Silver Chariot"], answer: 0 },
+        { q: "Rohan Kishibe's Heaven's Door turns people into what?", options: ["Bombs","Books","Statues","Butterflies"], answer: 1 },
+      ],
+      medium: [
+        { q: "What ability does Echoes ACT3 have?", options: ["Time stop","Sonic screams","Sets a fixed weight on targets","Creates copies"], answer: 2 },
+        { q: "What is the Stand ability of Diavolo's King Crimson?", options: ["Erasing time & seeing the future","Stopping time","Making anything explode","Reversing damage"], answer: 0 },
+        { q: "What is Enrico Pucci's original Stand before White Snake?", options: ["C-Moon","Made in Heaven","Whitesnake","Jongalli A"], answer: 2 },
+        { q: "In Part 5, what does Bucciarati's Sticky Fingers create?", options: ["Explosions","Zippers anywhere","Copies of people","Poison gas"], answer: 1 },
+        { q: "What is the name of Gyro Zeppeli's Stand in Steel Ball Run?", options: ["Tusk","Ball Breaker","Scary Monsters","Ticket to Ride"], answer: 1 },
+        { q: "What technique do Lisa Lisa and the Pillar Men primarily use?", options: ["Hamon","Spin","Stands","Rokakaka Fruit"], answer: 0 },
+        { q: "Foo Fighters (FF) is a Stand made of what?", options: ["Sand","Plankton","Electricity","Water"], answer: 1 },
+        { q: "What happens when Gold Experience Requiem returns something to zero?", options: ["It explodes","It freezes time","The target is trapped in endless death","It reverses aging"], answer: 2 },
+        { q: "Which character does Rohan Kishibe base his manga protagonist on?", options: ["Josuke","Koichi","Okuyasu","Kira"], answer: 1 },
+        { q: "What is the name of Diego Brando's Stand in Steel Ball Run?", options: ["The World","Scary Monsters","D4C","Ball Breaker"], answer: 1 },
+      ],
+      hard: [
+        { q: "What is the name of Funny Valentine's Stand in Steel Ball Run?", options: ["Love Train","Dirty Deeds Done Dirt Cheap (D4C)","Ball Breaker","Ticket to Ride"], answer: 1 },
+        { q: "What is the Stand of Yoshikage Kira in JoJolion (Part 8)?", options: ["Killer Queen","Sheer Heart Attack","Bite Za Dusto","Killer Queen: Bites the Dust"], answer: 0 },
+        { q: "Soft & Wet's bubbles steal what from their targets?", options: ["Color","Properties or attributes","Memories","Weight"], answer: 1 },
+        { q: "In Part 6, what does C-Moon do to space around Pucci?", options: ["Inverts gravity for others","Creates a black hole","Stops time","Accelerates time"], answer: 0 },
+        { q: "Which of these characters is NOT one of the Pillar Men?", options: ["Wamuu","Santana","Esidisi","Straizo"], answer: 3 },
+        { q: "What is the name of Hot Pants' Stand in Steel Ball Run?", options: ["Hey Ya!","Cream Starter","Tomb of the Boom","Mandom"], answer: 1 },
+        { q: "Josuke's Stand Crazy Diamond can repair things but cannot repair what?", options: ["Living people","Inorganic objects","Food","Josuke himself"], answer: 3 },
+        { q: "In JoJolion, what is the Locacaca fruit capable of doing?", options: ["Granting immortality","Equivalent exchange of physical attributes","Giving Stand powers","Healing all wounds"], answer: 1 },
+        { q: "What is the ability of Weather Report's Stand in Part 6?", options: ["Controls weather","Controls time","Creates illusions","Reads thoughts"], answer: 0 },
+        { q: "The NAME of Part 9 (The JOJOLands) protagonist is:", options: ["Josuke Higashikata","Jodio Joestar","Johnny Joestar","Jobin Higashikata"], answer: 1 },
+      ]
+    };
+
+    let currentDifficulty = 'easy';
+    let currentQuestions  = [];
+    let currentIndex      = 0;
+    let score             = 0;
+    let answered          = false;
+
+    function shuffle(arr) {
+      return [...arr].sort(() => Math.random() - 0.5);
+    }
+
+    function startQuiz(difficulty) {
+      currentDifficulty = difficulty;
+      currentQuestions  = shuffle(QUESTIONS[difficulty]).slice(0, 10);
+      currentIndex      = 0;
+      score             = 0;
+      answered          = false;
+
+      document.getElementById('start-screen').style.display  = 'none';
+      document.getElementById('result-screen').style.display = 'none';
+      document.getElementById('quiz-screen').style.display   = 'block';
+
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const q   = currentQuestions[currentIndex];
+      const pct = (currentIndex / currentQuestions.length) * 100;
+
+      document.getElementById('progress-fill').style.width    = pct + '%';
+      document.getElementById('quiz-counter').textContent     = `${currentIndex + 1} / ${currentQuestions.length}`;
+      document.getElementById('quiz-score-badge').textContent = `${score} pts`;
+      document.getElementById('quiz-question').textContent    = q.q;
+
+      const optsEl = document.getElementById('quiz-options');
+      optsEl.innerHTML = q.options.map((opt, i) => `
+        <button class="quiz-opt" onclick="answer(${i})">${opt}</button>
+      `).join('');
+
+      answered = false;
+    }
+
+    function answer(chosen) {
+      if (answered) return;
+      answered = true;
+
+      const q    = currentQuestions[currentIndex];
+      const btns = document.querySelectorAll('.quiz-opt');
+
+      btns.forEach(b => b.disabled = true);
+      btns[q.answer].classList.add('correct');
+
+      if (chosen === q.answer) {
+        score++;
+        showToast('✓ CORRECT!');
+      } else {
+        btns[chosen].classList.add('wrong');
+        showToast('✗ WRONG!');
+      }
+
+      document.getElementById('quiz-score-badge').textContent = `${score} pts`;
+
+      setTimeout(() => {
+        currentIndex++;
+        if (currentIndex < currentQuestions.length) {
+          renderQuestion();
+        } else {
+          showResult();
+        }
+      }, 1200);
+    }
+
+    function showResult() {
+      document.getElementById('quiz-screen').style.display   = 'none';
+      document.getElementById('result-screen').style.display = 'block';
+
+      const total  = currentQuestions.length;
+      const pct    = Math.round((score / total) * 100);
+      const msgs   = [
+        [80, 'TRUE JOJO FAN! YARE YARE DAZE...', 'You clearly know your stuff. Star Platinum would be proud.'],
+        [60, 'NOT BAD, NOT BAD...', 'You know the basics but there\'s more to discover. Keep watching!'],
+        [40, 'YOU\'VE MET YOUR MATCH', 'A bit more reading and you\'ll be a true Joestar. Keep at it!'],
+        [0,  'MUDA MUDA MUDA!', 'Time to start from Part 1. Your bizarre journey has just begun.'],
+      ];
+      const [,title, msg] = msgs.find(([min]) => pct >= min);
+
+      document.getElementById('result-title').textContent   = title;
+      document.getElementById('result-score').textContent   = `${score}/${total}`;
+      document.getElementById('result-message').textContent = msg;
+
+      // Save to localStorage for dashboard
+      const prev = parseInt(localStorage.getItem('jjba_quizzes') || '0');
+      localStorage.setItem('jjba_quizzes', prev + 1);
+      const best = parseInt(localStorage.getItem('jjba_best_score') || '0');
+      if (pct > best) localStorage.setItem('jjba_best_score', pct);
+    }
+  </script>
+  <script src="js/app.js" type="module"></script>
+</body>
+</html>
