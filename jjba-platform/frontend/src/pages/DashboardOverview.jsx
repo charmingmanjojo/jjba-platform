@@ -7,7 +7,7 @@ import {
   Music, Volume2, VolumeX, SkipForward, SkipBack,
   Play, Pause, Image
 } from 'lucide-react'
-import { useAuth } from '../../hooks/useAuth'
+import useAuth from "../hooks/useAuth";
 
 // ── Background wallpapers ────────────────────────────────────
 // Add your own images to /public/backgrounds/ and list them here
