@@ -1,6 +1,6 @@
 # 「JJBA ROLEPLAY PLATFORM」 — Beta
 
-A modular JoJo's Bizarre Adventure roleplay system. Game Masters create private **Parts**, invite players, and manage canon Stand logic.
+A modular JoJo's Bizarre Adventure roleplay system. Game Masters create private **Parts**, invite players, and manage canon Stand logic. 
 
 ## Stack
 
