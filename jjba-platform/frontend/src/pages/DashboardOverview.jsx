@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { BookOpen, Zap, Users, Plus, ChevronRight, Crown } from 'lucide-react'
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../hooks/useAuth'
 import { db } from '../../lib/supabase'
 
 function StatCard({ icon: Icon, label, value, color, delay = 0 }) {
